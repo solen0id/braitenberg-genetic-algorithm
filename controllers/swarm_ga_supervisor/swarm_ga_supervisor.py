@@ -87,7 +87,7 @@ def init_configs_from_evolution(generation_scores_combined):
     crossover_three = deepcopy(top_3_nn[0]).crossover(top_3_nn[2])
     crossover_four = deepcopy(top_3_nn[1]).crossover(top_3_nn[2])
 
-    rest = [NeuralNetwork.random() for _ in range(N_ROBOTS_PER_GENERATION - 10)]
+    rest = [NeuralNetwork.random() for _ in range(N_GENERATIONS_PER_EVOLUTION - 10)]
 
     configs = []
 
@@ -119,7 +119,7 @@ def get_fitness_scores(braits):
     ]
 
 
-N_ROBOTS_PER_GENERATION = 135
+N_ROBOTS_PER_GENERATION = 35
 N_GENERATIONS_PER_EVOLUTION = 15
 SECONDS_PER_GENERATION = 90
 
