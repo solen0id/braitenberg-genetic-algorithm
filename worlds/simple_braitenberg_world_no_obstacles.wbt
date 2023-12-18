@@ -1,0 +1,89 @@
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "../protos/BraitenbergLight.proto"
+EXTERNPROTO "../protos/BraitenbergLightBot.proto"
+
+WorldInfo {
+  info [
+    "A simple world for Braitenberg Vehicles."
+  ]
+  title "Braitenberg World"
+  FPS 30
+}
+Viewpoint {
+  orientation -0.30497407830496925 -0.3229725485000166 0.8959238497090245 4.66
+  position -0.47 4.63 4.04
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+  luminosity 0
+}
+RectangleArena {
+  rotation 0 1 0 0
+  floorSize 3 3
+}
+BraitenbergLightBot {
+  hidden linearVelocity_2 -5.259033105332559e-07 -3.959179196243546e-07 -1.9005429407780097e-09
+  hidden angularVelocity_2 -5.978128712640519e-06 -1.926862268122827e-05 -1.1953703549325266e-05
+  hidden linearVelocity_3 5.290480022231787e-07 1.6738477831470564e-07 -3.0536537423167124e-08
+  hidden angularVelocity_3 6.37787690013977e-06 2.297477673672875e-05 -1.1953675604291352e-05
+  translation 1 -1 0
+  rotation 0 0 1 -3.15
+  name "bot_01"
+  controller "simple_follow"
+}
+BraitenbergLightBot {
+  hidden linearVelocity_2 -5.259033105332559e-07 -3.959179196243546e-07 -1.9005429407780097e-09
+  hidden angularVelocity_2 -5.978128712640519e-06 -1.926862268122827e-05 -1.1953703549325266e-05
+  hidden linearVelocity_3 5.290480022231787e-07 1.6738477831470564e-07 -3.0536537423167124e-08
+  hidden angularVelocity_3 6.37787690013977e-06 2.297477673672875e-05 -1.1953675604291352e-05
+  translation 1 0 0
+  rotation 0 0 1 -3.15
+  name "bot_03"
+  controller "simple_follow"
+}
+BraitenbergLightBot {
+  hidden linearVelocity_2 -5.259033105332559e-07 -3.959179196243546e-07 -1.9005429407780097e-09
+  hidden angularVelocity_2 -5.978128712640519e-06 -1.926862268122827e-05 -1.1953703549325266e-05
+  hidden linearVelocity_3 5.290480022231787e-07 1.6738477831470564e-07 -3.0536537423167124e-08
+  hidden angularVelocity_3 6.37787690013977e-06 2.297477673672875e-05 -1.1953675604291352e-05
+  translation 0.8 -0.8 0
+  rotation 0 0 1 -3.15
+  name "bot_02"
+  controller "simple_avoid"
+  color 1 0 0
+}
+BraitenbergLightBot {
+  hidden linearVelocity_2 -5.259033105332559e-07 -3.959179196243546e-07 -1.9005429407780097e-09
+  hidden angularVelocity_2 -5.978128712640519e-06 -1.926862268122827e-05 -1.1953703549325266e-05
+  hidden linearVelocity_3 5.290480022231787e-07 1.6738477831470564e-07 -3.0536537423167124e-08
+  hidden angularVelocity_3 6.37787690013977e-06 2.297477673672875e-05 -1.1953675604291352e-05
+  translation -0.9 -0.9 0
+  rotation 0 0 1 -3.15
+  name "bot_04"
+  controller "simple_avoid"
+  color 1 0 0
+}
+BraitenbergLightBot {
+  hidden linearVelocity_2 -5.259033105332559e-07 -3.959179196243546e-07 -1.9005429407780097e-09
+  hidden angularVelocity_2 -5.978128712640519e-06 -1.926862268122827e-05 -1.1953703549325266e-05
+  hidden linearVelocity_3 5.290480022231787e-07 1.6738477831470564e-07 -3.0536537423167124e-08
+  hidden angularVelocity_3 6.37787690013977e-06 2.297477673672875e-05 -1.1953675604291352e-05
+  translation -1 -1 0
+  rotation 0 0 1 -3.15
+  name "bot_06"
+  controller "simple_avoid"
+  color 1 0 0
+}
+BraitenbergLight {
+  translation 0 -1 0.1
+  name "light_01"
+  color 0 0 1
+}
+Robot {
+  controller "swarm_ga_supervisor"
+}

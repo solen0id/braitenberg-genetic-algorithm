@@ -1,0 +1,36 @@
+#VRML_SIM R2023b utf8
+# Describe the functionality of your PROTO here.
+
+
+PROTO BraitenbergLight [
+  field SFVec3f translation 0 0 0
+  field SFString name "BraitenbergLight"
+  field SFColor color 1 1 1
+  field SFFloat intensity 0.3
+]
+{
+  Solid {
+    translation IS translation
+    name IS name
+
+    children [
+      PointLight {
+        location 0 0 0
+        attenuation 0 0 12.56
+        intensity IS intensity
+        color IS color
+      }
+      Shape {
+        appearance Appearance {
+          material Material {
+            transparency 0.6
+            emissiveColor IS color
+          }
+        }
+        geometry Sphere {
+          radius 0.05
+        }
+      }
+    ]
+  }
+}

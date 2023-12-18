@@ -1,0 +1,163 @@
+#VRML_SIM R2022b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/balls/protos/SoccerBall.proto"
+
+EXTERNPROTO "../protos/BraitenbergBot.proto"
+EXTERNPROTO "../protos/BraitenbergLight.proto"
+
+WorldInfo {
+  info [
+    "A simple world for Braitenberg Vehicles."
+  ]
+  title "Braitenberg World"
+  FPS 30
+}
+Viewpoint {
+  orientation -0.34086162922573254 -0.45529043622031956 0.8225107709981009 4.804652200140675
+  position 0.16432442271619963 0.2739423302653245 1.277642339020789
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+  luminosity 0.1
+}
+RectangleArena {
+  rotation 0 1 0 0
+  floorSize 3 3
+}
+DEF GREEN_BOX Solid {
+  translation 0.060058573693288764 0.15020010279037996 0.04999909748000001
+  rotation -1.1162749237941429e-16 -8.321072166709406e-17 -1 0.43921075583676417
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0 1 0
+        roughness 0.2189099510000001
+        metalness 0
+      }
+      geometry DEF BOX0 Box {
+        size 0.1 0.23 0.1
+      }
+    }
+  ]
+  name "green box"
+  boundingObject Shape {
+    appearance PBRAppearance {
+      roughness 1.1102230246251565e-16
+      metalness 0
+    }
+    geometry USE BOX0
+  }
+  physics Physics {
+    density 1
+  }
+  linearVelocity 5.208340179493956e-17 2.1039211417168762e-17 1.4095853559777562e-20
+  angularVelocity -6.643744748582243e-16 1.7079661076316736e-15 -3.96490829090687e-17
+}
+DEF BLUE_BOX Solid {
+  translation -0.2842414116749163 -0.4210216481746969 0.049999607599999996
+  rotation 3.93824080710878e-18 4.3236587509474083e-16 1 0.33805477751999263
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0 0 1
+        roughness 0.519341125
+        metalness 0
+      }
+      geometry DEF BOX1 Box {
+        size 0.1 0.1 0.1
+      }
+    }
+  ]
+  name "blue box"
+  boundingObject Shape {
+    appearance PBRAppearance {
+      roughness 1.1102230246251565e-16
+      metalness 0
+    }
+    geometry USE BOX1
+  }
+  physics Physics {
+    density 1
+  }
+  linearVelocity -2.4940782851122823e-17 3.011152644751212e-17 -6.938893903907278e-18
+  angularVelocity -2.711281392802714e-16 -1.055071548017018e-17 -2.925245276425781e-17
+}
+DEF YELLOW_BOX Solid {
+  translation -0.1508475241561702 -0.397942039922318 0.04941140000000001
+  rotation -2.926840216377389e-17 5.862953756127287e-17 1 1.1854297148089135
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 1 0
+        roughness 0.03934117200000009
+        metalness 0
+      }
+      geometry DEF BOX2 Box {
+        size 0.3 0.05 0.1
+      }
+    }
+  ]
+  name "yellow box"
+  boundingObject Shape {
+    appearance PBRAppearance {
+      roughness 1.1102230246251565e-16
+      metalness 0
+    }
+    geometry USE BOX2
+  }
+  physics Physics {
+  }
+  linearVelocity -3.613199964369028e-18 -6.478671799254446e-18 -3.0404900763194888e-21
+  angularVelocity 9.771025809081777e-16 2.86194783729803e-15 -9.391989802021361e-17
+}
+DEF PINK_BOX Solid {
+  translation 0.10000000000000453 -0.4199999999999988 0.049999529192934614
+  rotation 8.391229786050737e-05 9.528195124664939e-05 0.9999999919400379 9.55865390931587e-13
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1 0.1 0.3
+        roughness 0.16827074099999995
+        metalness 0
+      }
+      geometry DEF BOX3 Box {
+        size 0.08 0.15 0.1
+      }
+    }
+  ]
+  name "red box"
+  boundingObject Shape {
+    appearance PBRAppearance {
+      roughness 1.1102230246251565e-16
+      metalness 0
+    }
+    geometry USE BOX3
+  }
+  physics Physics {
+    density 1
+  }
+  linearVelocity 6.835606449089292e-17 1.514722017688179e-17 -5.69803324893852e-10
+  angularVelocity -8.006416042978641e-16 1.8510768798540503e-15 8.309406666862693e-17
+}
+SoccerBall {
+  hidden linearVelocity_0 0 0 -1.9721522630525295e-31
+  translation -0.1471557668259947 0.4572687253871264 0.024968607999999993
+  rotation 0.9806542687471318 0.15779830172506967 -0.1158313479189126 0.8082129578660053
+  radius 0.025
+  mass 0.02
+}
+BraitenbergBot {
+  translation 1 -1 0
+  rotation 0 0 1 -3.15
+  name "bot_01"
+  controller "simple_vehicle"
+}
+BraitenbergLight {
+  translation 0 -1 0.1
+  name "light_01"
+  intensity 1
+}
