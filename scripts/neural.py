@@ -56,8 +56,9 @@ class NeuralNetwork:
             pickle.dump(self, f)
 
     def think(self, inputs):
-        # implement a simple feedforward neural network with one hidden layer with 3 neurons
-        # and an output layer with 2 neurons
+        # implement a simple feedforward neural network
+        # with 1 hidden layer with 3 neurons
+        # and  1 output layer with 2 neurons
 
         hidden_layer = self.activation(
             np.dot(np.array(inputs), self.weights[0]) + self.biases[0]
@@ -68,17 +69,17 @@ class NeuralNetwork:
 
         return output_layer * 10  # scale output to [-10, 10] for motor control
 
-    def mutate(self, rate=0.15, prob=0.1):
+    def mutate(self, rate=0.15, prob=0.3):
         for i in range(len(self.weights)):
             for j in range(len(self.weights[i])):
                 for k in range(len(self.weights[i][j])):
                     if np.random.rand() < prob:
-                        self.weights[i][j][k] += np.random.normal(-rate, rate)
+                        self.weights[i][j][k] += np.random.uniform(-rate, rate)
 
         for i in range(len(self.biases)):
             for j in range(len(self.biases[i])):
                 if np.random.rand() < prob:
-                    self.biases[i][j] += np.random.normal(-rate, rate)
+                    self.biases[i][j] += np.random.uniform(-rate, rate)
 
         return self
 

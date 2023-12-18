@@ -79,13 +79,30 @@ def get_sensor_readings():
     return [ll, lr, dl, dr, pl, pr, gps]
 
 
+def get_nn_sensors_normalized():
+    [ll, lr, dl, dr, _, _, _] = get_sensor_readings()
+
+    # normalize sensors
+    ll = normalize(ll, 0, 1000, -1, 1)
+    lr = normalize(lr, 0, 1000, -1, 1)
+    dl = normalize(dl, 0, 1024, -1, 1)
+    dr = normalize(dr, 0, 1024, -1, 1)
+
+    return [ll, lr, dl, dr]
+
+
+def normalize(x, xmin, xmax, a, b):
+    # normalize x from [xmin, xmax] to [a, b]
+    return (b - a) * (x - xmin) / (xmax - xmin) + a
+
+
 fitness = Fitness()
 nn = NeuralNetwork.from_file(robot.getCustomData())
 
 frame_counter = 0
 
 while robot.step(timeStep) != -1:
-    inputs = get_sensor_readings()[:4]
+    inputs = get_nn_sensors_normalized()
     outputs = nn.think(inputs)
 
     ml, mr = outputs
