@@ -68,7 +68,7 @@ class NeuralNetwork:
 
         return output_layer * 10  # scale output to [-10, 10] for motor control
 
-    def mutate(self, rate=1.25, prob=0.1):
+    def mutate(self, rate=0.15, prob=0.1):
         for i in range(len(self.weights)):
             for j in range(len(self.weights[i])):
                 for k in range(len(self.weights[i][j])):
