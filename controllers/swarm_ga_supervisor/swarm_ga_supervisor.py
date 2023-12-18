@@ -34,11 +34,19 @@ def init_random_configs():
         nn_fname = DATA_DIR / f"nn_{GENERATION_COUNT+i}.pkl"
         nn.to_file(nn_fname)
         configs.append(nn_fname)
+    configs.reverse()
     return configs
 
 
 def bot_from_config(nn_fname):
     braits.clear()
+
+    n_gen = str(nn_fname.name).replace(".pkl", "").replace("nn_", "")
+    nn_gen = int(n_gen)
+
+    if nn_gen != GENERATION_COUNT:
+        raise Exception(f"Wrong generation! {nn_gen} {GENERATION_COUNT}")
+
     for i in range(0, N_ROBOTS_PER_GENERATION):
         x = random.randint(-10, 10) / 10
         y = random.randint(-10, 10) / 10
@@ -111,9 +119,9 @@ def get_fitness_scores(braits):
     ]
 
 
-N_ROBOTS_PER_GENERATION = 30
+N_ROBOTS_PER_GENERATION = 1
 N_GENERATIONS_PER_EVOLUTION = 15
-SECONDS_PER_GENERATION = 100
+SECONDS_PER_GENERATION = 5
 
 GENERATION_COUNT = 0
 GENERATION_SCORES = {}
@@ -126,6 +134,7 @@ INIT = True
 while supervisor.step(timeStep) != -1:
     if INIT:
         bot_from_config(NN_CONFIGS.pop())
+        GENERATION_COUNT += 1
         INIT = False
 
     if supervisor.getTime() > SECONDS_PER_GENERATION:
@@ -137,7 +146,6 @@ while supervisor.step(timeStep) != -1:
         print(f"Generation {GENERATION_COUNT} score: {np.mean(gen_scores)}")
 
         supervisor.simulationReset()
-        GENERATION_COUNT += 1
         INIT = True
 
     if len(NN_CONFIGS) == 0:
