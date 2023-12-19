@@ -28,10 +28,12 @@ braits = []
 
 
 def init_random_configs():
-    configs = []
-    for i in range(N_GENERATIONS_PER_EVOLUTION):
+    configs = sorted([f.absolute() for f in DATA_DIR.glob("*.pkl")])
+    n_existing = len(configs)
+
+    for i in range(N_GENERATIONS_PER_EVOLUTION - n_existing):
         nn = NeuralNetwork.random()
-        nn_fname = DATA_DIR / f"nn_{GENERATION_COUNT+i}.pkl"
+        nn_fname = (DATA_DIR / f"nn_{i + n_existing}.pkl").absolute()
         nn.to_file(nn_fname)
         configs.append(nn_fname)
     configs.reverse()
