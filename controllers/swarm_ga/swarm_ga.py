@@ -104,7 +104,6 @@ def normalize(x, xmin, xmax, a, b):
 
 
 frame_counter = 0
-fitness = None
 nn = NeuralNetwork.from_file(robot.getCustomData())
 
 

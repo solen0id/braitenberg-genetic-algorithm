@@ -24,11 +24,10 @@ supervisor.simulationSetMode(supervisor.SIMULATION_MODE_FAST)
 
 root_node = supervisor.getRoot()
 children_field = root_node.getField("children")
-braits = []
 
 
 def init_random_configs():
-    configs = sorted([f.absolute() for f in DATA_DIR.glob("*.pkl")])
+    configs = sorted([f.absolute() for f in DATA_DIR.glob("*.pkl")], key=sort_configs)
     n_existing = len(configs)
 
     for i in range(N_GENERATIONS_PER_EVOLUTION - n_existing):
@@ -40,8 +39,14 @@ def init_random_configs():
     return configs
 
 
-def bot_from_config(nn_fname):
-    braits.clear()
+def sort_configs(path):
+    return int(
+        str(path).replace(str(DATA_DIR), "").replace("/nn_", "").replace(".pkl", "")
+    )
+
+
+def bots_from_config(nn_fname):
+    global UNIQUE_ID
 
     n_gen = str(nn_fname.name).replace(".pkl", "").replace("nn_", "")
     nn_gen = int(n_gen)
@@ -49,26 +54,28 @@ def bot_from_config(nn_fname):
     if nn_gen != GENERATION_COUNT:
         raise Exception(f"Wrong generation! {nn_gen} {GENERATION_COUNT}")
 
-    for i in range(0, N_ROBOTS_PER_GENERATION):
+    for _ in range(0, N_ROBOTS_PER_GENERATION):
         x = random.randint(-11, 11) / 10
         y = random.randint(-11, 11) / 10
         rot_z = random.randint(-10, 10) / 10
 
+        uid = int_to_uid(UNIQUE_ID)
+
         children_field.importMFNodeFromString(
             -1,
             f"""
-            DEF braitenberg_vehicle_{i} BraitenbergLightBot {{
+            DEF braitenberg_vehicle_{uid} BraitenbergLightBot {{
                 translation {x} {y} 0 
                 rotation 0 0 1 {rot_z}
                 color 0 1 0 
                 controller "swarm_ga"
-                name "braitenberg_vehicle_{i}"
+                name "braitenberg_vehicle_{uid}"
                 customData "{nn_fname}"
             }}
             """,
         )
 
-        braits.append(supervisor.getFromDef(f"braitenberg_vehicle_{i}"))
+        UNIQUE_ID += 1
 
 
 def init_configs_from_evolution(generation_scores_combined):
@@ -88,7 +95,11 @@ def init_configs_from_evolution(generation_scores_combined):
     crossover_two = deepcopy(top_3_nn[0]).crossover(top_3_nn[2])
     crossover_three = deepcopy(top_3_nn[1]).crossover(top_3_nn[2])
 
-    rest = [NeuralNetwork.random() for _ in range(N_GENERATIONS_PER_EVOLUTION - 9)]
+    rest = (
+        [NeuralNetwork.random() for _ in range(N_GENERATIONS_PER_EVOLUTION - 9)]
+        if N_GENERATIONS_PER_EVOLUTION > 9
+        else []
+    )
 
     configs = []
 
@@ -102,15 +113,17 @@ def init_configs_from_evolution(generation_scores_combined):
             *rest,
         ]
     ):
-        nn_fname = DATA_DIR / f"nn_{GENERATION_COUNT + i}.pkl"
+        nn_fname = DATA_DIR / f"nn_{GENERATION_COUNT + i + 1}.pkl"
         nn.to_file(nn_fname)
         configs.append(nn_fname)
 
     configs.reverse()
+
     return configs
 
 
 def get_fitness_scores(braits):
+    print("Computing fitness scores...")
     return [
         float(b.getField("customData").getSFString())
         if b.getField("customData").getSFString()
@@ -120,11 +133,31 @@ def get_fitness_scores(braits):
 
 
 def compute_generation_fitness():
+    braits = get_current_bot_nodes()
+
     gen_scores = sorted(get_fitness_scores(braits))
     gen_scores_avg = np.mean(gen_scores[1:-1])  # remove top and bottom outliers
 
     GENERATION_SCORES_COMBINED[GENERATION_COUNT] = gen_scores_avg
     print(f"Generation {GENERATION_COUNT} score: {gen_scores_avg}")
+
+
+def remove_old_bots():
+    for robot in get_current_bot_nodes():
+        robot.remove()
+
+
+def int_to_uid(i):
+    int_as_text = str(i)
+
+    return "".join([chr(int(n) + 97) for n in int_as_text])
+
+
+def get_current_bot_nodes():
+    return [
+        supervisor.getFromDef(f"braitenberg_vehicle_{int_to_uid(i)}")
+        for i in range(UNIQUE_ID - N_ROBOTS_PER_GENERATION, UNIQUE_ID)
+    ]
 
 
 N_ROBOTS_PER_GENERATION = 15
@@ -133,22 +166,29 @@ SECONDS_PER_GENERATION = 60
 
 GENERATION_COUNT = 0
 GENERATION_SCORES_COMBINED = {}
+UNIQUE_ID = 0
 
 # start with random configs
 NN_CONFIGS = init_random_configs()
-INIT = True
+bots_from_config(NN_CONFIGS.pop())
+
+RESET = False
 
 while supervisor.step(timeStep) != -1:
-    if INIT:
-        bot_from_config(NN_CONFIGS.pop())
+    if RESET:
+        RESET = False
         GENERATION_COUNT += 1
-        INIT = False
+        bots_from_config(NN_CONFIGS.pop())
+        supervisor.simulationSetMode(supervisor.SIMULATION_MODE_FAST)
 
     if supervisor.getTime() > SECONDS_PER_GENERATION:
+        RESET = True
+
         # save scores before creating new generation of bots
         compute_generation_fitness()
-        supervisor.simulationReset()
-        INIT = True
+        remove_old_bots()
 
-    if len(NN_CONFIGS) == 0:
-        NN_CONFIGS = init_configs_from_evolution(GENERATION_SCORES_COMBINED)
+        if len(NN_CONFIGS) == 0:
+            NN_CONFIGS = init_configs_from_evolution(GENERATION_SCORES_COMBINED)
+
+        supervisor.simulationReset()  # will always happen at END of step!
