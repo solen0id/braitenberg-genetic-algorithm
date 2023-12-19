@@ -5,8 +5,8 @@ import numpy as np
 from controller import Robot
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
 sys.path.append(str(BASE_DIR / "scripts"))
+
 from neural import Fitness, NeuralNetwork
 
 # Get reference to the robot.
@@ -53,14 +53,21 @@ right_motor.setVelocity(0)
 def evaluate_fitness():
     [_, _, dl, dr, _, _, gps] = get_sensor_readings()
 
-    # compute gps distance since last frame
+    # track how far the robot has moved from its previous position
     x, y, _ = gps
     fitness.distance += np.sqrt(
         (x - fitness.distance_x) ** 2 + (y - fitness.distance_y) ** 2
     )
+
     fitness.distance_x = x
     fitness.distance_y = y
 
+    # track how far the robot has moved from its starting position
+    fitness.distance_from_start = np.sqrt(
+        (x - fitness.x_start) ** 2 + (y - fitness.y_start) ** 2
+    )
+
+    # penalize collisions
     fitness.collisions += 1 if dl > 1023 or dr > 1023 else 0
 
 
@@ -96,21 +103,31 @@ def normalize(x, xmin, xmax, a, b):
     return (b - a) * (x - xmin) / (xmax - xmin) + a
 
 
-fitness = Fitness()
+frame_counter = 0
+fitness = None
 nn = NeuralNetwork.from_file(robot.getCustomData())
 
-frame_counter = 0
+
+def init_robot():
+    global fitness
+    global frame_counter
+
+    if frame_counter == 1:
+        x, y, _ = gps_sensor.getValues()
+        fitness = Fitness(x_start=x, y_start=y)
+
 
 while robot.step(timeStep) != -1:
-    inputs = get_nn_sensors_normalized()
-    outputs = nn.think(inputs)
+    init_robot()
 
-    ml, mr = outputs
+    inputs = get_nn_sensors_normalized()
+    ml, mr = nn.think(inputs)
 
     left_motor.setVelocity(ml)
     right_motor.setVelocity(mr)
 
     frame_counter += 1
+
     if frame_counter % 10 == 0:
         evaluate_fitness()
         robot.setCustomData(str(fitness.to_val()))

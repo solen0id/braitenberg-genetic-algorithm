@@ -125,7 +125,7 @@ def compute_generation_fitness():
     print(f"Generation {GENERATION_COUNT} score: {gen_scores_avg}")
 
 
-N_ROBOTS_PER_GENERATION = 25
+N_ROBOTS_PER_GENERATION = 15
 N_GENERATIONS_PER_EVOLUTION = 15
 SECONDS_PER_GENERATION = 60
 

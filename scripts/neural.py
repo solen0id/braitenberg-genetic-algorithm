@@ -1,5 +1,6 @@
 import pickle
 from dataclasses import dataclass
+from typing import Optional
 
 import numpy as np
 
@@ -21,13 +22,16 @@ def tanh(x):
 
 @dataclass
 class Fitness:
+    x_start: float
+    y_start: float
     distance: float = 0
+    distance_from_start: float = 0
     distance_x: float = 0
     distance_y: float = 0
     collisions: int = 0
 
     def to_val(self):
-        return self.distance - self.collisions * 10
+        return self.distance + 2 * self.distance_from_start - self.collisions * 5
 
 
 class NeuralNetwork:
