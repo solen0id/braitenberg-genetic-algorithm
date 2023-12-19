@@ -48,8 +48,8 @@ def bot_from_config(nn_fname):
         raise Exception(f"Wrong generation! {nn_gen} {GENERATION_COUNT}")
 
     for i in range(0, N_ROBOTS_PER_GENERATION):
-        x = random.randint(-10, 10) / 10
-        y = random.randint(-10, 10) / 10
+        x = random.randint(-11, 11) / 10
+        y = random.randint(-11, 11) / 10
         rot_z = random.randint(-10, 10) / 10
 
         children_field.importMFNodeFromString(
@@ -82,12 +82,11 @@ def init_configs_from_evolution(generation_scores_combined):
 
     top_3_mutated = [deepcopy(nn).mutate() for nn in top_3_nn]
 
-    crossover_one = deepcopy(top_3_nn[0]).crossover(top_3_nn[0])
-    crossover_two = deepcopy(top_3_nn[0]).crossover(top_3_nn[1])
-    crossover_three = deepcopy(top_3_nn[0]).crossover(top_3_nn[2])
-    crossover_four = deepcopy(top_3_nn[1]).crossover(top_3_nn[2])
+    crossover_one = deepcopy(top_3_nn[0]).crossover(top_3_nn[1])
+    crossover_two = deepcopy(top_3_nn[0]).crossover(top_3_nn[2])
+    crossover_three = deepcopy(top_3_nn[1]).crossover(top_3_nn[2])
 
-    rest = [NeuralNetwork.random() for _ in range(N_GENERATIONS_PER_EVOLUTION - 10)]
+    rest = [NeuralNetwork.random() for _ in range(N_GENERATIONS_PER_EVOLUTION - 9)]
 
     configs = []
 
@@ -98,7 +97,6 @@ def init_configs_from_evolution(generation_scores_combined):
             crossover_one,
             crossover_two,
             crossover_three,
-            crossover_four,
             *rest,
         ]
     ):
@@ -119,15 +117,22 @@ def get_fitness_scores(braits):
     ]
 
 
-N_ROBOTS_PER_GENERATION = 30
+def compute_generation_fitness():
+    gen_scores = sorted(get_fitness_scores(braits))
+    gen_scores_avg = np.mean(gen_scores[1:-1])  # remove top and bottom outliers
+
+    GENERATION_SCORES_COMBINED[GENERATION_COUNT] = gen_scores_avg
+    print(f"Generation {GENERATION_COUNT} score: {gen_scores_avg}")
+
+
+N_ROBOTS_PER_GENERATION = 25
 N_GENERATIONS_PER_EVOLUTION = 15
 SECONDS_PER_GENERATION = 60
 
 GENERATION_COUNT = 0
-GENERATION_SCORES = {}
 GENERATION_SCORES_COMBINED = {}
 
-# start with 10 random configs
+# start with random configs
 NN_CONFIGS = init_random_configs()
 INIT = True
 
@@ -139,12 +144,7 @@ while supervisor.step(timeStep) != -1:
 
     if supervisor.getTime() > SECONDS_PER_GENERATION:
         # save scores before creating new generation of bots
-        gen_scores = get_fitness_scores(braits)
-        GENERATION_SCORES[GENERATION_COUNT] = gen_scores
-        GENERATION_SCORES_COMBINED[GENERATION_COUNT] = np.mean(gen_scores)
-
-        print(f"Generation {GENERATION_COUNT} score: {np.mean(gen_scores)}")
-
+        compute_generation_fitness()
         supervisor.simulationReset()
         INIT = True
 
