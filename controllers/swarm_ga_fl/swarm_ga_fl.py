@@ -51,13 +51,7 @@ right_motor.setVelocity(0)
 
 
 def evaluate_fitness():
-    [ll, lr, _, _, _, _, gps] = get_sensor_readings()
-
-    # track how far the robot has moved from its starting position
-    x, y, _ = gps
-    fitness.distance_from_start = np.sqrt(
-        (x - fitness.x_start) ** 2 + (y - fitness.y_start) ** 2
-    )
+    [ll, lr, _, _, _, _, _] = get_sensor_readings()
 
     # track light intensity
     fitness.light_intensity = ll + lr
@@ -104,16 +98,15 @@ def init_robot():
     global frame_counter
 
     if frame_counter == 1:
-        [ll, lr, _, _, _, _, gps] = get_sensor_readings()
-        x, y, _ = gps
-
-        fitness = FollowLightFitness(x_start=x, y_start=y, light_intensity=ll + lr)
+        [ll, lr, _, _, _, _, _] = get_sensor_readings()
+        fitness = FollowLightFitness(light_intensity=ll + lr)
 
 
 while robot.step(timeStep) != -1:
     init_robot()
 
-    inputs = get_nn_sensors_normalized()
+    [ll, lr, _, _] = get_nn_sensors_normalized()
+    inputs = [ll, lr]
     ml, mr = nn.think(inputs)
 
     left_motor.setVelocity(ml)

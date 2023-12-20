@@ -31,7 +31,7 @@ def init_random_configs():
     n_existing = len(configs)
 
     for i in range(N_GENERATIONS_PER_EVOLUTION - n_existing):
-        nn = NeuralNetwork.random()
+        nn = NeuralNetwork.random(n_inputs=2, n_hidden=3, n_outputs=2)
         nn_fname = (DATA_DIR / f"nn_{i + n_existing}.pkl").absolute()
         nn.to_file(nn_fname)
         configs.append(nn_fname)
@@ -105,7 +105,7 @@ def init_configs_from_evolution(generation_scores_combined):
 
     rest = (
         [
-            NeuralNetwork.random()
+            NeuralNetwork.random(n_inputs=2, n_hidden=3, n_outputs=2)
             for _ in range(N_GENERATIONS_PER_EVOLUTION - len(mutated))
         ]
         if N_GENERATIONS_PER_EVOLUTION > len(mutated)
@@ -141,8 +141,7 @@ def get_fitness_scores(braits):
 def compute_generation_fitness():
     braits = get_current_bot_nodes()
 
-    gen_scores = sorted(get_fitness_scores(braits))
-    gen_scores_avg = np.mean(gen_scores[1:-1])  # remove top and bottom outliers
+    gen_scores_avg = np.mean(get_fitness_scores(braits))
 
     GENERATION_SCORES_COMBINED[GENERATION_COUNT] = gen_scores_avg
     print(f"Generation {GENERATION_COUNT} score: {gen_scores_avg}")
