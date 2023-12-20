@@ -1,0 +1,38 @@
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/floors/protos/RectangleArena.proto"
+IMPORTABLE EXTERNPROTO "../protos/BraitenbergLight.proto"
+IMPORTABLE EXTERNPROTO "../protos/BraitenbergLightBot.proto"
+
+WorldInfo {
+  info [
+    "A simple world for Braitenberg Vehicles."
+  ]
+  title "Braitenberg World"
+  FPS 30
+}
+Viewpoint {
+  orientation -0.322934163129975 -0.3220689748075471 0.8899354480803415 4.593519817822724
+  position 0.07227563715871134 4.859507537339306 4.078026405688615
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+  luminosity 0
+}
+RectangleArena {
+  rotation 0 1 0 0
+  floorSize 3 3
+}
+
+BraitenbergLight {
+  translation 0 0 0.14
+  color 1 0 0 
+}
+
+Robot {
+  controller "swarm_ga_supervisor_fl"
+  supervisor TRUE
+}

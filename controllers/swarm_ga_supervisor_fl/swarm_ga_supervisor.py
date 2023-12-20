@@ -68,7 +68,7 @@ def bots_from_config(nn_fname):
                 translation {x} {y} 0 
                 rotation 0 0 1 {rot_z}
                 color 0 1 0 
-                controller "swarm_ga"
+                controller "swarm_ga_fl"
                 name "braitenberg_vehicle_{uid}"
                 customData "{nn_fname}"
             }}

@@ -7,7 +7,7 @@ from controller import Robot
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(BASE_DIR / "scripts"))
 
-from neural import Fitness, NeuralNetwork
+from neural import FollowLightFitness, NeuralNetwork
 
 # Get reference to the robot.
 robot = Robot()
@@ -51,24 +51,16 @@ right_motor.setVelocity(0)
 
 
 def evaluate_fitness():
-    [_, _, dl, dr, _, _, gps] = get_sensor_readings()
-
-    # track how far the robot has moved from its previous position
-    x, y, _ = gps
-    fitness.distance += np.sqrt(
-        (x - fitness.distance_x) ** 2 + (y - fitness.distance_y) ** 2
-    )
-
-    fitness.distance_x = x
-    fitness.distance_y = y
+    [ll, lr, _, _, _, _, gps] = get_sensor_readings()
 
     # track how far the robot has moved from its starting position
+    x, y, _ = gps
     fitness.distance_from_start = np.sqrt(
         (x - fitness.x_start) ** 2 + (y - fitness.y_start) ** 2
     )
 
-    # penalize collisions
-    fitness.collisions += 1 if dl > 1023 or dr > 1023 else 0
+    # track light intensity
+    fitness.light_intensity = ll + lr
 
 
 def get_sensor_readings():
@@ -112,8 +104,10 @@ def init_robot():
     global frame_counter
 
     if frame_counter == 1:
-        x, y, _ = gps_sensor.getValues()
-        fitness = Fitness(x_start=x, y_start=y)
+        [ll, lr, _, _, _, _, gps] = get_sensor_readings()
+        x, y, _ = gps
+
+        fitness = FollowLightFitness(x_start=x, y_start=y, light_intensity=ll + lr)
 
 
 while robot.step(timeStep) != -1:

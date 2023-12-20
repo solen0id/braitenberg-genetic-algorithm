@@ -51,9 +51,9 @@ while robot.step(timeStep) != -1:
         ml = lr / LM_SCALE - ll / LM_SCALE + (LIGHT_BOOST - (lr + ll) / 2) / LM_SCALE
         mr = ll / LM_SCALE - lr / LM_SCALE + (LIGHT_BOOST - (lr + ll) / 2) / LM_SCALE
 
-    # print(
-    #     "{:.2f}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:.2f}".format(ll, lr, dl, dr, ml, mr)
-    # )
+    print(
+        "{:.2f}, {:.2f}, {:.2f}, {:.2f}, {:.2f}, {:.2f}".format(ll, lr, dl, dr, ml, mr)
+    )
 
-    left_motor.setVelocity(ml)
-    right_motor.setVelocity(mr)
+    # left_motor.setVelocity(ml)
+    # right_motor.setVelocity(mr)
