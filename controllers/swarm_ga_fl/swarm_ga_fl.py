@@ -54,7 +54,7 @@ def evaluate_fitness():
     [ll, lr, _, _, _, _, _] = get_sensor_readings()
 
     # track light intensity
-    fitness.light_intensity = ll + lr
+    fitness.light_intensity += ll + lr
 
 
 def get_sensor_readings():

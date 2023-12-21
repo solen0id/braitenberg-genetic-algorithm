@@ -59,17 +59,15 @@ def bots_from_config(nn_fname):
         y = random.randint(-11, 11) / 10
         rot_z = random.randint(-10, 10) / 10
 
-        uid = int_to_uid(UNIQUE_ID)
-
         children_field.importMFNodeFromString(
             -1,
             f"""
-            DEF braitenberg_vehicle_{uid} BraitenbergLightBot {{
+            DEF braitenberg_vehicle_{UNIQUE_ID} BraitenbergLightBot {{
                 translation {x} {y} 0 
                 rotation 0 0 1 {rot_z}
                 color 0 1 0 
                 controller "swarm_ga_fl"
-                name "braitenberg_vehicle_{uid}"
+                name "braitenberg_vehicle_{UNIQUE_ID}"
                 customData "{nn_fname}"
             }}
             """,
@@ -152,22 +150,37 @@ def remove_old_bots():
         robot.remove()
 
 
-def int_to_uid(i):
-    int_as_text = str(i)
-
-    return "".join([chr(int(n) + 97) for n in int_as_text])
-
-
 def get_current_bot_nodes():
     return [
-        supervisor.getFromDef(f"braitenberg_vehicle_{int_to_uid(i)}")
+        supervisor.getFromDef(f"braitenberg_vehicle_{i}")
         for i in range(UNIQUE_ID - N_ROBOTS_PER_GENERATION, UNIQUE_ID)
     ]
 
 
+def delete_old_configs():
+    for config in DATA_DIR.glob("*.pkl"):
+        gen_count = int(
+            str(config)
+            .replace(str(DATA_DIR), "")
+            .replace("/nn_", "")
+            .replace(".pkl", "")
+        )
+
+        top_3_gens = sorted(
+            GENERATION_SCORES_COMBINED.items(), key=lambda x: x[1], reverse=True
+        )[:3]
+        top_3_gens = [gen for gen, _ in top_3_gens]
+
+        if (
+            gen_count < GENERATION_COUNT - N_GENERATIONS_PER_EVOLUTION * 2
+            and gen_count not in top_3_gens
+        ):
+            config.unlink()
+
+
 N_ROBOTS_PER_GENERATION = 15
-N_GENERATIONS_PER_EVOLUTION = 25
-SECONDS_PER_GENERATION = 60
+N_GENERATIONS_PER_EVOLUTION = 20
+SECONDS_PER_GENERATION = 180
 
 GENERATION_COUNT = 0
 GENERATION_SCORES_COMBINED = {}
@@ -195,5 +208,6 @@ while supervisor.step(timeStep) != -1:
 
         if len(NN_CONFIGS) == 0:
             NN_CONFIGS = init_configs_from_evolution(GENERATION_SCORES_COMBINED)
+            delete_old_configs()
 
         supervisor.simulationReset()  # will always happen at END of step!

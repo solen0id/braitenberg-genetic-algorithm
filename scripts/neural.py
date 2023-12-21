@@ -78,11 +78,9 @@ class NeuralNetwork:
         hidden_layer = self.activation(
             np.dot(np.array(inputs), self.weights[0]) + self.biases[0]
         )
-        output_layer = self.activation(
-            np.dot(hidden_layer, self.weights[1]) + self.biases[1]
-        )
+        output_layer = np.dot(hidden_layer, self.weights[1]) + self.biases[1]
 
-        return output_layer * 10  # scale output to [-10, 10] for motor control
+        return output_layer  # * 10  # scale output to [-10, 10] for motor control
 
     def mutate(self, rate=0.15, prob=0.3):
         for i in range(len(self.weights)):
