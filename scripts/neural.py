@@ -29,9 +29,21 @@ class Fitness:
     distance_x: float = 0
     distance_y: float = 0
     collisions: int = 0
+    light_intensity: float = 0
 
     def to_val(self):
         return self.distance + 3 * self.distance_from_start - self.collisions
+
+
+@dataclass
+class FollowLightDistanceFitness:
+    x_start: float
+    y_start: float
+    distance_from_start: float = 0
+    light_intensity: float = 0
+
+    def to_val(self):
+        return 2 * self.light_intensity + self.distance_from_start
 
 
 @dataclass
@@ -49,7 +61,7 @@ class NeuralNetwork:
         self.activation = activation
 
     @classmethod
-    def random(cls, n_inputs=4, n_hidden=3, n_outputs=2):
+    def random(cls, n_inputs, n_hidden, n_outputs):
         return cls(
             weights=[
                 random_weights(n_inputs, n_hidden),

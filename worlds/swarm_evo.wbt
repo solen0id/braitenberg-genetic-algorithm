@@ -28,6 +28,6 @@ RectangleArena {
 }
 
 Robot {
-  controller "swarm_ga_supervisor"
+  controller "swarm_evo_supervisor"
   supervisor TRUE
 }

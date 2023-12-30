@@ -31,7 +31,7 @@ def init_random_configs():
     n_existing = len(configs)
 
     for i in range(N_GENERATIONS_PER_EVOLUTION - n_existing):
-        nn = NeuralNetwork.random(n_inputs=2, n_hidden=3, n_outputs=2)
+        nn = NeuralNetwork.random()
         nn_fname = (DATA_DIR / f"nn_{i + n_existing}.pkl").absolute()
         nn.to_file(nn_fname)
         configs.append(nn_fname)
@@ -59,15 +59,17 @@ def bots_from_config(nn_fname):
         y = random.randint(-11, 11) / 10
         rot_z = random.randint(-10, 10) / 10
 
+        uid = int_to_uid(UNIQUE_ID)
+
         children_field.importMFNodeFromString(
             -1,
             f"""
-            DEF braitenberg_vehicle_{UNIQUE_ID} BraitenbergLightBot {{
+            DEF braitenberg_vehicle_{uid} BraitenbergLightBot {{
                 translation {x} {y} 0 
                 rotation 0 0 1 {rot_z}
                 color 0 1 0 
-                controller "swarm_ga_fl"
-                name "braitenberg_vehicle_{UNIQUE_ID}"
+                controller "swarm_evo"
+                name "braitenberg_vehicle_{uid}"
                 customData "{nn_fname}"
             }}
             """,
@@ -103,7 +105,7 @@ def init_configs_from_evolution(generation_scores_combined):
 
     rest = (
         [
-            NeuralNetwork.random(n_inputs=2, n_hidden=3, n_outputs=2)
+            NeuralNetwork.random()
             for _ in range(N_GENERATIONS_PER_EVOLUTION - len(mutated))
         ]
         if N_GENERATIONS_PER_EVOLUTION > len(mutated)
@@ -139,7 +141,8 @@ def get_fitness_scores(braits):
 def compute_generation_fitness():
     braits = get_current_bot_nodes()
 
-    gen_scores_avg = np.mean(get_fitness_scores(braits))
+    gen_scores = sorted(get_fitness_scores(braits))
+    gen_scores_avg = np.mean(gen_scores[1:-1])  # remove top and bottom outliers
 
     GENERATION_SCORES_COMBINED[GENERATION_COUNT] = gen_scores_avg
     print(f"Generation {GENERATION_COUNT} score: {gen_scores_avg}")
@@ -150,37 +153,22 @@ def remove_old_bots():
         robot.remove()
 
 
+def int_to_uid(i):
+    int_as_text = str(i)
+
+    return "".join([chr(int(n) + 97) for n in int_as_text])
+
+
 def get_current_bot_nodes():
     return [
-        supervisor.getFromDef(f"braitenberg_vehicle_{i}")
+        supervisor.getFromDef(f"braitenberg_vehicle_{int_to_uid(i)}")
         for i in range(UNIQUE_ID - N_ROBOTS_PER_GENERATION, UNIQUE_ID)
     ]
 
 
-def delete_old_configs():
-    for config in DATA_DIR.glob("*.pkl"):
-        gen_count = int(
-            str(config)
-            .replace(str(DATA_DIR), "")
-            .replace("/nn_", "")
-            .replace(".pkl", "")
-        )
-
-        top_3_gens = sorted(
-            GENERATION_SCORES_COMBINED.items(), key=lambda x: x[1], reverse=True
-        )[:3]
-        top_3_gens = [gen for gen, _ in top_3_gens]
-
-        if (
-            gen_count < GENERATION_COUNT - N_GENERATIONS_PER_EVOLUTION * 2
-            and gen_count not in top_3_gens
-        ):
-            config.unlink()
-
-
 N_ROBOTS_PER_GENERATION = 15
-N_GENERATIONS_PER_EVOLUTION = 20
-SECONDS_PER_GENERATION = 180
+N_GENERATIONS_PER_EVOLUTION = 25
+SECONDS_PER_GENERATION = 60
 
 GENERATION_COUNT = 0
 GENERATION_SCORES_COMBINED = {}
@@ -208,6 +196,5 @@ while supervisor.step(timeStep) != -1:
 
         if len(NN_CONFIGS) == 0:
             NN_CONFIGS = init_configs_from_evolution(GENERATION_SCORES_COMBINED)
-            delete_old_configs()
 
         supervisor.simulationReset()  # will always happen at END of step!

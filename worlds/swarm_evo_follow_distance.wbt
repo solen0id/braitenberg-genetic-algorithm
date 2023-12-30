@@ -33,6 +33,6 @@ BraitenbergLight {
 }
 
 Robot {
-  controller "swarm_ga_supervisor_fl"
+  controller "swarm_evo_follow_distance_supervisor"
   supervisor TRUE
 }

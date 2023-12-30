@@ -76,8 +76,8 @@ def get_nn_sensors_normalized():
     [ll, lr, dl, dr, _, _, _] = get_sensor_readings()
 
     # normalize sensors
-    ll = normalize(ll, 348, 1000, -1, 1)  # measured min and max values
-    lr = normalize(lr, 388, 1000, -1, 1)  # measured min and max values
+    ll = normalize(ll, 333, 500, -1, 1)  # measured min and max values
+    lr = normalize(lr, 333, 500, -1, 1)  # measured min and max values
     dl = normalize(dl, 0, 1024, -1, 1)
     dr = normalize(dr, 0, 1024, -1, 1)
 
@@ -108,6 +108,8 @@ while robot.step(timeStep) != -1:
     [ll, lr, _, _] = get_nn_sensors_normalized()
     inputs = [ll, lr]
     ml, mr = nn.think(inputs)
+    ml, mr = max(-10, ml), max(-10, mr)
+    ml, mr = min(10, ml), min(10, mr)
 
     left_motor.setVelocity(ml)
     right_motor.setVelocity(mr)

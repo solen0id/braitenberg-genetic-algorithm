@@ -1,4 +1,5 @@
 import random
+import shutil
 import sys
 from copy import deepcopy
 from pathlib import Path
@@ -11,7 +12,7 @@ DATA_DIR = BASE_DIR / "data"
 
 sys.path.append(str(BASE_DIR / "scripts"))
 
-from neural import Fitness, NeuralNetwork
+from neural import NeuralNetwork
 
 # Get reference to the robot.
 supervisor = Supervisor()
@@ -31,7 +32,7 @@ def init_random_configs():
     n_existing = len(configs)
 
     for i in range(N_GENERATIONS_PER_EVOLUTION - n_existing):
-        nn = NeuralNetwork.random()
+        nn = NeuralNetwork.random(n_inputs=2, n_hidden=3, n_outputs=2)
         nn_fname = (DATA_DIR / f"nn_{i + n_existing}.pkl").absolute()
         nn.to_file(nn_fname)
         configs.append(nn_fname)
@@ -59,17 +60,15 @@ def bots_from_config(nn_fname):
         y = random.randint(-11, 11) / 10
         rot_z = random.randint(-10, 10) / 10
 
-        uid = int_to_uid(UNIQUE_ID)
-
         children_field.importMFNodeFromString(
             -1,
             f"""
-            DEF braitenberg_vehicle_{uid} BraitenbergLightBot {{
+            DEF braitenberg_vehicle_{UNIQUE_ID} BraitenbergLightBot {{
                 translation {x} {y} 0 
                 rotation 0 0 1 {rot_z}
                 color 0 1 0 
-                controller "swarm_ga"
-                name "braitenberg_vehicle_{uid}"
+                controller "swarm_evo_follow_distance"
+                name "braitenberg_vehicle_{UNIQUE_ID}"
                 customData "{nn_fname}"
             }}
             """,
@@ -79,15 +78,24 @@ def bots_from_config(nn_fname):
 
 
 def init_configs_from_evolution(generation_scores_combined):
-    top_scores = sorted(
-        generation_scores_combined.items(), key=lambda x: x[1], reverse=True
+    last_gen = sorted(
+        list(generation_scores_combined.items()), key=lambda x: x[0], reverse=True
+    )[:N_GENERATIONS_PER_EVOLUTION]
+    top_scores_last_gen = sorted(
+        last_gen,
+        key=lambda x: x[1],
+        reverse=True,
     )
 
-    print(f"Top scores: {top_scores[:3]}")
+    print(f"Top scores from last generation: {top_scores_last_gen[:3]}")
 
-    top_3_nn = [
-        NeuralNetwork.from_file(DATA_DIR / f"nn_{i}.pkl") for i, _ in top_scores[:3]
-    ]
+    top_3_ix = [ix for ix, _ in top_scores_last_gen[:3]]
+
+    # quick hack to copy top 3 configs to data dir
+    # for top_nn in (DATA_DIR / "best").glob("*.pkl"):
+    #     shutil.copy(top_nn, DATA_DIR)
+
+    top_3_nn = [NeuralNetwork.from_file(DATA_DIR / f"nn_{ix}.pkl") for ix in top_3_ix]
 
     top_3_mutated_strong = [deepcopy(nn).mutate(rate=2, prob=1) for nn in top_3_nn]
     top_3_mutated_modest = [deepcopy(nn).mutate(rate=1.5, prob=0.75) for nn in top_3_nn]
@@ -105,17 +113,27 @@ def init_configs_from_evolution(generation_scores_combined):
 
     rest = (
         [
-            NeuralNetwork.random()
-            for _ in range(N_GENERATIONS_PER_EVOLUTION - len(mutated))
+            NeuralNetwork.random(n_inputs=2, n_hidden=3, n_outputs=2)
+            for _ in range(N_GENERATIONS_PER_EVOLUTION - len(mutated) - 3)
         ]
-        if N_GENERATIONS_PER_EVOLUTION > len(mutated)
+        if N_GENERATIONS_PER_EVOLUTION > len(mutated) + 3
         else []
     )
 
     configs = []
 
+    # save top 3 configs back to best
+    # for i in top_3_ix:
+    #     shutil.copy(DATA_DIR / f"nn_{i}.pkl", DATA_DIR / "best" / f"nn_{i}.pkl")
+
+    # delete old configs
+    delete_old_configs(keep=top_3_ix)
+
+    # save mutated and random configs
     for i, nn in enumerate(
         [
+            *top_3_nn,
+            *mutated,
             *rest,
         ]
     ):
@@ -141,8 +159,7 @@ def get_fitness_scores(braits):
 def compute_generation_fitness():
     braits = get_current_bot_nodes()
 
-    gen_scores = sorted(get_fitness_scores(braits))
-    gen_scores_avg = np.mean(gen_scores[1:-1])  # remove top and bottom outliers
+    gen_scores_avg = float(np.mean(get_fitness_scores(braits))) / SECONDS_PER_GENERATION
 
     GENERATION_SCORES_COMBINED[GENERATION_COUNT] = gen_scores_avg
     print(f"Generation {GENERATION_COUNT} score: {gen_scores_avg}")
@@ -153,28 +170,44 @@ def remove_old_bots():
         robot.remove()
 
 
-def int_to_uid(i):
-    int_as_text = str(i)
-
-    return "".join([chr(int(n) + 97) for n in int_as_text])
-
-
 def get_current_bot_nodes():
     return [
-        supervisor.getFromDef(f"braitenberg_vehicle_{int_to_uid(i)}")
+        supervisor.getFromDef(f"braitenberg_vehicle_{i}")
         for i in range(UNIQUE_ID - N_ROBOTS_PER_GENERATION, UNIQUE_ID)
     ]
 
 
-N_ROBOTS_PER_GENERATION = 15
-N_GENERATIONS_PER_EVOLUTION = 25
-SECONDS_PER_GENERATION = 60
+def delete_old_configs(dir_=DATA_DIR, keep=None):
+    if keep is None:
+        keep = []
 
-GENERATION_COUNT = 0
-GENERATION_SCORES_COMBINED = {}
+    for config in dir_.glob("*.pkl"):
+        for ix in keep:
+            if f"nn_{ix}.pkl" in str(config):
+                break
+        config.unlink()
+
+
+def set_n_robots(min_=4, max_=25):
+    return random.randint(min_, min_ + min(max_ - min_, GENERATION_COUNT // 100))
+
+
+def set_n_seconds(min_=180, max_=360):
+    return random.randint(min_, min_ + min(max_ - min_, GENERATION_COUNT // 10))
+
+
 UNIQUE_ID = 0
+GENERATION_COUNT = 0
+N_GENERATIONS_PER_EVOLUTION = 20
 
-# start with random configs
+GENERATION_SCORES_COMBINED = {}
+
+# start with small population and evolve quickly
+# then increase population and evolve slower
+N_ROBOTS_PER_GENERATION = 12
+SECONDS_PER_GENERATION = 180
+
+# start with random configs, then evolve from best
 NN_CONFIGS = init_random_configs()
 bots_from_config(NN_CONFIGS.pop())
 
@@ -184,6 +217,10 @@ while supervisor.step(timeStep) != -1:
     if RESET:
         RESET = False
         GENERATION_COUNT += 1
+
+        N_ROBOTS_PER_GENERATION = set_n_robots()
+        SECONDS_PER_GENERATION = set_n_seconds()
+
         bots_from_config(NN_CONFIGS.pop())
         supervisor.simulationSetMode(supervisor.SIMULATION_MODE_FAST)
 
